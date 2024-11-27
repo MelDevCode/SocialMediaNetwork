@@ -1,4 +1,4 @@
-    <footer style="width: 100%; height: 60px; background-color: DarkSlateBlue;">
+    <footer style="width: 100%; height: 60px; background-color: DarkSlateBlue;" class="mt-4">
       <div class="container">
         <p style="text-align: center; padding: 10px; color: white;">&copy; Algonquin College 2010 - 2023. All Rights Reserved</p>
       </div>
