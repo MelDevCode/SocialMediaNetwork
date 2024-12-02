@@ -73,21 +73,12 @@
       <div class="card-body">
       
         <input type="text" class="form-control" name="friendRequesteeId">
-        <?php if (isset($errors['userId'])): ?>
-            <span class="error text-danger"><?php echo $errors['userId']; ?></span>
-        <?php endif; ?>
-        <?php if (isset($errors['friendship'])): ?>
-            <span class="error text-danger"><?php echo $errors['friendship']; ?></span>
-        <?php endif; ?>
-        <?php if (isset($errors['friendshipRequest'])): ?>
-            <span class="error text-danger"><?php echo $errors['friendshipRequest']; ?></span>
-        <?php endif; ?>
-        <?php if (isset($messages['friendshipRequest'])): ?>
-            <span class="error text-danger"><?php echo $messages['friendshipRequest']; ?></span>
-        <?php endif; ?>
-        <?php if (isset($errors['dbError'])): ?>
-            <span class="error text-danger"><?php echo $errors['dbError']; ?></span>
-        <?php endif; ?>
+        <?php if (!empty($errors)) {
+          foreach($errors as $error) {
+            echo "<span class='error text-danger'>$error</span>";
+          }
+        }
+        ?>
         <p class="card-text">Enter the ID of the user you want to be friends with.</p>
         <button type="submit" name="sendFriendRequest" class="btn" style="background-color: DarkSlateBlue; color: white;">Send Friend Request</button>
       </div>
