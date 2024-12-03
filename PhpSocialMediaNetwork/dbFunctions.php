@@ -219,6 +219,8 @@ function deleteFriend($userId, $friendId) {
     } catch (PDOException $ex) {
         die("Database error: " . $ex->getMessage());
     }
+}
+
 function getAlbums($ownerId) {
     $pdo = getPDO(); // Ensure getPDO() returns a valid PDO instance
 
