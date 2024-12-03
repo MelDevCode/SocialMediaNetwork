@@ -7,6 +7,14 @@
   include 'dbFunctions.php';
   // Start session
   session_start();
+
+  // Check if the user is already logged in
+  if (isset($_SESSION['user'])) {
+    // Redirect to logout page
+    header("Location: logout.php");
+    exit();
+  }
+
   extract($_POST);
   
   // Initialize error array
@@ -43,10 +51,16 @@
             $errors['password'] = 'Incorrect User ID and Password Combination!';
         } else {
             // Store the user data in the session
-            $_SESSION['user'] = $user;
+            $_SESSION['user'] = [
+              'UserId' => $user['UserId'], // Store the UserId
+              'Name' => $user['Name'],     // Store other necessary user details
+              // Add more user data if needed
+            ];
 
-            // Redirect to this page by default
-            header("Location: MyPictures.php");
+            // Redirect to the target page if set; otherwise, default to MyPictures
+            $redirectTo = $_SESSION['redirect_to'] ?? 'MyPictures.php';
+            unset($_SESSION['redirect_to']); // Clear the target page after redirection
+            header("Location: $redirectTo");
             exit();
         }
     }
