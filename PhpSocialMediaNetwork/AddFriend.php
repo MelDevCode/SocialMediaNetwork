@@ -12,6 +12,9 @@
   $messages = [];
   if(isset($_SESSION['userId'])) {
     $userId = $_SESSION['userId'];
+  } else {
+    header("Location: Login.php");
+    exit();
   }
 
   if (isset($sendFriendRequest)) {
@@ -73,9 +76,16 @@
       <div class="card-body">
       
         <input type="text" class="form-control" name="friendRequesteeId">
-        <?php if (!empty($errors)) {
+        <?php 
+        if (!empty($errors)) {
           foreach($errors as $error) {
             echo "<span class='error text-danger'>$error</span>";
+          }
+        }
+
+        if (!empty($messages)) {
+          foreach($messages as $msj) {
+            echo "<span class='success text-success'>$msj</span>";
           }
         }
         ?>
