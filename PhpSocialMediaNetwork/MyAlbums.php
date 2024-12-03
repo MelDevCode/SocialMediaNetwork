@@ -10,10 +10,19 @@
   if (isset($_SESSION['user'])) {
     $user = $_SESSION['user'];
     $userName = $user['Name'];  // Get the student's name
+    $userId = $user['UserId'];
+    // Get Album List
+    $getAlbums = getPictureAlbums($userId);
+    $getAccesibilityByParam = getAccessibility();
+    
+  
+    
     } else {
         header("Location: Login.php");
         exit();
     }
+    
+    
 ?>
 
 <?php include("./common/header.php"); ?>
@@ -33,34 +42,39 @@
     <table class="table align-middle mb-0 bg-white">
         <thead class="bg-light">
             <tr>
-                <th>Album Title</th>
+                <th>Title</th>
                 <th>Number of Pictures</th>
                 <th>Accessibility</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <button type="button" class="btn btn-link">My Trip to China</button>
-                    </div>
-                </td>
-                <td>
-                    <p class="fw-normal mb-1">14</p>
-                </td>
-                <td>
-                    <select class="form-select" id="semesterDropdown" style="padding: 5px;" name="semester">
-                        <option value="">Select an option</option>
-                        <option value=""></option>
-                    </select>
-                </td>
+      
+                <?php 
+                    foreach($getAlbums as $album)  
+                    {
+                    echo "<tr>";
+                    echo "<td>". htmlspecialchars($album['Title']) . "</td>";
+                    echo "<td>". htmlspecialchars($album['NumberOfPictures']) . "</td>";
+                    echo "<td>". htmlspecialchars($album['Accessibility_Code']). "</td>";
+                    echo "<td> 
+                            <button type='button class='btn btn-outline-danger'>
+                                    Delete
+                            </button> 
+                        </td>";
+                        
+                    echo "</tr>";
+                    }
+                        
+                ?>
+              
                 <td>
                     <button type="button" class="btn btn-outline-danger">
                         Delete
                     </button>
                 </td>
-            </tr>
+                
+                
         </tbody>
     </table>
     

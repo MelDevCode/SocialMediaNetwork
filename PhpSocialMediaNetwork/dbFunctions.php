@@ -65,6 +65,62 @@ function addNewUser($userId, $name, $phone, $password) {
     }
 }
 
+function getAccessibility()
+{
+    $pdo = getPDO();
+    $sql = "SELECT accessibility_Code, Description FROM Accessibility";
+    $stmt = $pdo->query($sql);   
+    $accessibility = [];
+    if($stmt->rowCount() > 0)
+    {
+       while($row = $stmt->fetch(PDO::FETCH_ASSOC))
+       {
+        $accessibility[] = $row; 
+       }
+    }
+    return $accessibility;
+}
+
+
+function AddNewAlbum($title, $Description, $OwnerId, $selectAccessibility)
+{
+    try
+    {
+        $pdo = getPDO();
+        $sql = "INSERT INTO album (Title, Description, Owner_Id, Accessibility_Code)
+                VALUES (:Title, :Description, :Owner_Id, :Accessibility_Code)";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['Title' => $title, 'Description' => $Description, 'Owner_Id' => $OwnerId, 'Accessibility_Code' => $selectAccessibility]);
+    }
+    catch (PDOException $e)
+    {
+        throw new Exception("Error Insert new Album: " . $e); 
+    }
+}
+
+function getPictureAlbums($OwnerId)
+{
+    try
+    {
+        $pdo = getPDO();
+        $sql = "SELECT a.Title, count(p.Album_Id) as 'NumberOfPictures', a.Accessibility_Code
+                FROM album a
+                INNER JOIN picture p 
+                        ON a.Album_Id = p.Album_Id
+                WHERE a.Owner_Id = :Owner_Id
+                GROUP BY a.Title, a.Accessibility_Code";
+        
+       $stmt = $pdo->prepare($sql);  
+       $stmt-> execute(['Owner_Id' => $OwnerId]);
+       return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    catch (PDOException $e)
+    {
+        throw new Exception("Error getPictureAlbums: " . $e); 
+    }
+}
+
 function getUserId($userId) {
     try {
         $pdo = getPDO();
