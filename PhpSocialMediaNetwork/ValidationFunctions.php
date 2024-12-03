@@ -44,4 +44,37 @@ function ValidatePasswordReenter($password, $passwordReenter) {
     
     return "";
 }
+
+function createImageResource($filePath, $imageType) {
+    switch ($imageType) {
+        case IMAGETYPE_JPEG:
+            return imagecreatefromjpeg($filePath);
+        case IMAGETYPE_PNG:
+            return imagecreatefrompng($filePath);
+        case IMAGETYPE_GIF:
+            return imagecreatefromgif($filePath);
+        default:
+            return false;
+    }
+}
+
+function resampleImage($srcImage, $maxWidth, $maxHeight) {
+    $srcWidth = imagesx($srcImage);
+    $srcHeight = imagesy($srcImage);
+
+    // Calculate new dimensions
+    $aspectRatio = $srcWidth / $srcHeight;
+    if ($maxWidth / $maxHeight > $aspectRatio) {
+        $newWidth = $maxHeight * $aspectRatio;
+        $newHeight = $maxHeight;
+    } else {
+        $newWidth = $maxWidth;
+        $newHeight = $maxWidth / $aspectRatio;
+    }
+
+    $newImage = imagecreatetruecolor($newWidth, $newHeight);
+    imagecopyresampled($newImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $srcWidth, $srcHeight);
+
+    return $newImage;
+}
 ?>

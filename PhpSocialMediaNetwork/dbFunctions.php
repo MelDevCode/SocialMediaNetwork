@@ -219,5 +219,122 @@ function deleteFriend($userId, $friendId) {
     } catch (PDOException $ex) {
         die("Database error: " . $ex->getMessage());
     }
+function getAlbums($ownerId) {
+    $pdo = getPDO(); // Ensure getPDO() returns a valid PDO instance
+
+    // Update the SQL query to include Album_Id
+    $sql = "SELECT Album_Id, Title, Description 
+            FROM Album 
+            WHERE Owner_Id = :ownerId";
+    
+    // Use prepared statements to avoid SQL injection
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindParam(':ownerId', $ownerId);
+    
+    $stmt->execute();
+    
+    // Fetch all rows at once
+    $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    return $albums; // Returns an array of albums, now including Album_Id
+}
+
+function savePicture($albumId, $fileName, $title, $description, $tempFilePath) {
+    $pdo = getPDO();
+
+    // Upload to 'uploads' directory 
+    $uploadDirectory = 'uploads/';
+    $filePath = $uploadDirectory . $fileName;
+
+    // Move the uploaded file to the appropriate directory
+    if (move_uploaded_file($tempFilePath, $filePath)) {
+        $sql = "INSERT INTO Picture (Album_Id, File_Name, Title, Description) VALUES (:albumId, :fileName, :title, :description)";
+
+        $stmt = $pdo->prepare($sql);
+
+        // Bind the parameters
+        $stmt->bindParam(':albumId', $albumId);
+        $stmt->bindParam(':fileName', $filePath);
+        $stmt->bindParam(':title', $title);
+        $stmt->bindParam(':description', $description);
+
+        // Execute the query
+        $stmt->execute();
+    } else {
+        // Handle error if the file couldn't be moved
+        echo "Error uploading file: $fileName";
+    }
+}
+
+function getPhotosByAlbumId($albumId) {
+    $pdo = getPDO(); 
+    $query = "SELECT * FROM Picture WHERE Album_Id = ?";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute([$albumId]);
+    $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Make sure to prepend the 'uploads/' folder to the image file paths
+    foreach ($photos as $photo) {
+        $photo['File_Name'] = 'uploads/' . $photo['File_Name']; // Adjust the path
+    }
+
+    return $photos;
+}
+
+function saveComment($authorId, $pictureId, $commentText) {
+    $pdo = getPDO();
+    $sql = "INSERT INTO Comment (Author_Id, Picture_Id, Comment_Text) 
+            VALUES (:authorId, :pictureId, :commentText)";
+    $stmt = $pdo->prepare($sql);
+    //Bind the parameters
+    $stmt->bindParam(':authorId', $authorId);
+    $stmt->bindParam(':pictureId', $pictureId);
+    $stmt->bindParam(':commentText', $commentText);
+    //Execute the query
+    $stmt->execute();
+}
+
+function getCommentsByPictureId($pictureId) {
+    $pdo = getPDO();
+    $sql = "SELECT c.Comment_Text, u.Name AS AuthorName 
+            FROM Comment c
+            JOIN User u ON c.Author_Id = u.UserId
+            WHERE c.Picture_Id = :pictureId";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':pictureId' => $pictureId]);
+    
+    $comments = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $comments[] = [
+            'AuthorName' => $row['AuthorName'],
+            'Comment_Text' => $row['Comment_Text']
+        ];
+    }
+    return $comments;
+}
+
+function getSharedAlbumsByFriend($friendUserId, $userId) {
+    $pdo = getPDO();
+    $query = "SELECT a.Album_Id, a.Title 
+              FROM Album a
+              JOIN Friendship f ON (f.Friend_RequesterId = a.Owner_Id OR f.Friend_RequesteeId = a.Owner_Id)
+              WHERE f.Status = 'Accepted' 
+              AND a.Accessibility_Code = 'shared' 
+              AND a.Owner_Id = :friendUserId 
+              AND (f.Friend_RequesterId = :userId OR f.Friend_RequesteeId = :userId)";
+    
+    $stmt = $pdo->prepare($query);
+    
+    // Bind parameters using PDO syntax
+    $stmt->bindValue(':friendUserId', $friendUserId, PDO::PARAM_STR);
+    $stmt->bindValue(':userId', $userId, PDO::PARAM_STR);
+    
+    // Execute the query
+    $stmt->execute();
+    
+    // Fetch results as associative array
+    $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    return $albums;
 }
 ?>
