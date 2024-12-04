@@ -68,7 +68,7 @@ function addNewUser($userId, $name, $phone, $password) {
 function getAccessibility()
 {
     $pdo = getPDO();
-    $sql = "SELECT accessibility_Code, Description FROM Accessibility";
+    $sql = "SELECT accessibility_Code, Description FROM accessibility";
     $stmt = $pdo->query($sql);   
     $accessibility = [];
     if($stmt->rowCount() > 0)
@@ -106,7 +106,7 @@ function getPictureAlbums($OwnerId)
         $pdo = getPDO();
         $sql = "SELECT a.Title, count(p.Album_Id) as 'NumberOfPictures', a.Accessibility_Code
                 FROM album a
-                INNER JOIN picture p 
+                LEFT JOIN picture p 
                         ON a.Album_Id = p.Album_Id
                 WHERE a.Owner_Id = :Owner_Id
                 GROUP BY a.Title, a.Accessibility_Code";
@@ -213,10 +213,23 @@ function addFriend($friendRequesterId, $friendRequesteeId) {
 function acceptFriendRequest($userId, $requesterId) {
     try {
         $pdo = getPDO();
-        $sql = "UPDATE Friendship SET Status = 'accepted' WHERE Friend_RequesterId = :requesterId AND Friend_RequesteeId = :userId";
+        $sql = "UPDATE friendship SET Status = 'accepted' WHERE Friend_RequesterId = :requesterId AND Friend_RequesteeId = :userId";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':requesterId', $requesterId);
         $stmt->bindParam(':userId', $userId);
+        $stmt->execute();
+    } catch (PDOException $ex) {
+        die("Database error: " . $ex->getMessage());
+    }
+}
+
+function denyFriendRequest($userId, $requesterId) {
+    try {
+        $pdo = getPDO();
+        $sql = "DELETE FROM friendship WHERE Friend_RequesterId = :requesterId AND Friend_RequesteeId = :userId";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':userId', $userId);
+        $stmt->bindParam(':requesterId', $requesterId);
         $stmt->execute();
     } catch (PDOException $ex) {
         die("Database error: " . $ex->getMessage());
@@ -282,7 +295,7 @@ function getAlbums($ownerId) {
 
     // Update the SQL query to include Album_Id
     $sql = "SELECT Album_Id, Title, Description 
-            FROM Album 
+            FROM album 
             WHERE Owner_Id = :ownerId";
     
     // Use prepared statements to avoid SQL injection
@@ -306,7 +319,7 @@ function savePicture($albumId, $fileName, $title, $description, $tempFilePath) {
 
     // Move the uploaded file to the appropriate directory
     if (move_uploaded_file($tempFilePath, $filePath)) {
-        $sql = "INSERT INTO Picture (Album_Id, File_Name, Title, Description) VALUES (:albumId, :fileName, :title, :description)";
+        $sql = "INSERT INTO picture (Album_Id, File_Name, Title, Description) VALUES (:albumId, :fileName, :title, :description)";
 
         $stmt = $pdo->prepare($sql);
 
@@ -326,7 +339,7 @@ function savePicture($albumId, $fileName, $title, $description, $tempFilePath) {
 
 function getPhotosByAlbumId($albumId) {
     $pdo = getPDO(); 
-    $query = "SELECT * FROM Picture WHERE Album_Id = ?";
+    $query = "SELECT * FROM picture WHERE Album_Id = ?";
     $stmt = $pdo->prepare($query);
     $stmt->execute([$albumId]);
     $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -341,7 +354,7 @@ function getPhotosByAlbumId($albumId) {
 
 function saveComment($authorId, $pictureId, $commentText) {
     $pdo = getPDO();
-    $sql = "INSERT INTO Comment (Author_Id, Picture_Id, Comment_Text) 
+    $sql = "INSERT INTO comment (Author_Id, Picture_Id, Comment_Text) 
             VALUES (:authorId, :pictureId, :commentText)";
     $stmt = $pdo->prepare($sql);
     //Bind the parameters
@@ -355,8 +368,8 @@ function saveComment($authorId, $pictureId, $commentText) {
 function getCommentsByPictureId($pictureId) {
     $pdo = getPDO();
     $sql = "SELECT c.Comment_Text, u.Name AS AuthorName 
-            FROM Comment c
-            JOIN User u ON c.Author_Id = u.UserId
+            FROM comment c
+            JOIN user u ON c.Author_Id = u.UserId
             WHERE c.Picture_Id = :pictureId";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':pictureId' => $pictureId]);
@@ -374,8 +387,8 @@ function getCommentsByPictureId($pictureId) {
 function getSharedAlbumsByFriend($friendUserId, $userId) {
     $pdo = getPDO();
     $query = "SELECT a.Album_Id, a.Title 
-              FROM Album a
-              JOIN Friendship f ON (f.Friend_RequesterId = a.Owner_Id OR f.Friend_RequesteeId = a.Owner_Id)
+              FROM album a
+              JOIN friendship f ON (f.Friend_RequesterId = a.Owner_Id OR f.Friend_RequesteeId = a.Owner_Id)
               WHERE f.Status = 'Accepted' 
               AND a.Accessibility_Code = 'shared' 
               AND a.Owner_Id = :friendUserId 
