@@ -356,37 +356,39 @@ function denyFriendRequest($userId, $requesterId) {
         return $photos;
     }
 
-    function saveComment($authorId, $pictureId, $commentText) {
-        $pdo = getPDO();
-        $sql = "INSERT INTO comment (Author_Id, Picture_Id, Comment_Text) 
-                VALUES (:authorId, :pictureId, :commentText)";
-        $stmt = $pdo->prepare($sql);
-        //Bind the parameters
-        $stmt->bindParam(':authorId', $authorId);
-        $stmt->bindParam(':pictureId', $pictureId);
-        $stmt->bindParam(':commentText', $commentText);
-        //Execute the query
-        $stmt->execute();
-    }
+function saveComment($authorId, $pictureId, $commentText) {
+    $pdo = getPDO();
+    $sql = "INSERT INTO Comment (Author_Id, Picture_Id, Comment_Text, Created_At) 
+            VALUES (:authorId, :pictureId, :commentText, NOW())";
+    $stmt = $pdo->prepare($sql);
+    //Bind the parameters
+    $stmt->bindParam(':authorId', $authorId);
+    $stmt->bindParam(':pictureId', $pictureId);
+    $stmt->bindParam(':commentText', $commentText);
+    //Execute the query
+    $stmt->execute();
+}
 
-    function getCommentsByPictureId($pictureId) {
-        $pdo = getPDO();
-        $sql = "SELECT c.Comment_Text, u.Name AS AuthorName 
-                FROM comment c
-                JOIN user u ON c.Author_Id = u.UserId
-                WHERE c.Picture_Id = :pictureId";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([':pictureId' => $pictureId]);
-        
-        $comments = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $comments[] = [
-                'AuthorName' => $row['AuthorName'],
-                'Comment_Text' => $row['Comment_Text']
-            ];
-        }
-        return $comments;
+function getCommentsByPictureId($pictureId) {
+    $pdo = getPDO();
+    $sql = "SELECT c.Comment_Text, c.Created_At, u.Name AS AuthorName 
+            FROM Comment c
+            JOIN User u ON c.Author_Id = u.UserId
+            WHERE c.Picture_Id = :pictureId
+            ORDER BY c.Created_At DESC";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':pictureId' => $pictureId]);
+    
+    $comments = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $comments[] = [
+            'AuthorName' => $row['AuthorName'],
+            'Comment_Text' => $row['Comment_Text'],
+            'Created_At' => $row['Created_At']
+        ];
     }
+    return $comments;
+}
 
     function getSharedAlbumsByFriend($friendUserId, $userId) {
         $pdo = getPDO();
@@ -410,73 +412,16 @@ function denyFriendRequest($userId, $requesterId) {
         // Fetch results as associative array
         $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return $albums;
-    }
+    return $albums;
+}
 
-    function deletePicture($albumId) 
-    {
-        try
-        {
-            $pdo = getPDO();
-
-            // Delete pictures first associated with the album
-            $query = "DELETE FROM picture WHERE Album_Id = :albumId";  
-            $stmt = $pdo->prepare($query);
-            $stmt->execute(['albumId'=>$albumId]); 
-        
-        }
-        catch (PDOException $e)
-        {
-            return "Error deleting album" .$e;
-            //throw new Exception("Error deleting album: " . $e); 
-        
-        }
-    }
-
-    function deleteAlbum($albumId): bool|string 
-    {
-        try
-        {
-            $pdo = getPDO();
-        
-            // Delete the album
-            $query= "DELETE FROM album WHERE Album_Id = :albumId";  
-            $stmt = $pdo->prepare($query);
-            $stmt->execute(['albumId'=>$albumId]); 
-        
-            return true;
-        }
-        catch (PDOException $e)
-        {
-            return "Error deleting album" .$e;
-            //throw new Exception("Error deleting album: " . $e); 
-        
-        }
-    }    
-
-    function updateAlbum($rowsToSave)
-    {
-        try
-        {
-            
-            foreach ($rowsToSave as $row) {
-                $pdo = getPDO();
-                // Access the values for 'Album_Id' and 'Accessibility_Code'
-                $albumId = $row['Album_Id'];
-                $accessibilityCode = $row['Accessibility_Code'];
-            
-                // Update the album
-                $query= "Update album set Accessibility_Code = :accessibilityCode WHERE Album_Id = :albumId";
-                $stmt = $pdo->prepare($query);
-                $stmt->execute(['accessibilityCode'=>$accessibilityCode ,'albumId'=>$albumId]); 
-            }
-            return true;
-        }
-        catch (PDOException $e)
-        {
-            return "Error updating album" .$e;
-            //throw new Exception("Error deleting album: " . $e); 
-        
-        }
-    }
+function friendName($friendUserId) {
+    $pdo = getPDO(); 
+    $sql = "SELECT Name FROM user WHERE UserId = :friendUserId"; 
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindParam(':friendUserId', $friendUserId);
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row ? $row['Name'] : null; // Return the name or null if not found
+}
 ?>
