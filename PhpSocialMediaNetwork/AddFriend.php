@@ -10,11 +10,13 @@
   extract($_POST);
   $errors = [];
   $messages = [];
-  if(isset($_SESSION['userId'])) {
-    $userId = $_SESSION['userId'];
+  if (isset($_SESSION['user'])) {
+    $user = $_SESSION['user'];
+    $userName = $user['Name'];
+    $userId = $user['UserId'];  // Get the student's name
   } else {
-    header("Location: Login.php");
-    exit();
+      header("Location: Login.php");
+      exit();
   }
 
   if (isset($sendFriendRequest)) {

@@ -11,7 +11,7 @@
     if (isset($_SESSION['user'])) {
         $user = $_SESSION['user'];
         $userName = $user['Name'];
-        $userId = $_SESSION['userId'];  // Get the student's name
+        $userId = $user['UserId'];  // Get the student's name
     } else {
         header("Location: Login.php");
         exit();
@@ -57,6 +57,12 @@
           }
         }
     ?>
+    <!-- Create Album Button -->
+    <div class="mt-3 mx-auto">
+        <a href="AddFriend.php">
+            <button type="submit" class="btn btn-outline-secondary">Add a New Friend</button>
+        </a>
+    </div>
     <!-- List of Friends Card -->
     <div class="card mt-3 mx-auto" style="width: 55rem;">
         <h5 class="card-header text-center">List of Friends</h5> 
