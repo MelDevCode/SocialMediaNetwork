@@ -7,21 +7,28 @@
   session_start();
 
   // Check if the user is logged in
-  if (isset($_SESSION['user'])) {
+  if (isset($_SESSION['user']))
+   {
     $user = $_SESSION['user'];
     $userName = $user['Name'];  // Get the student's name
     $userId = $user['UserId'];
+
     // Get Album List
     $getAlbums = getPictureAlbums($userId);
-    $getAccesibilityByParam = getAccessibility();
+    $getAccesibility = getAccessibility();
     
-  
-    
-    } else {
+    }
+     elseif (!isset($_SESSION['user']))   
+    {
+        // Save the requested page in the session
+        if (!isset($_SESSION['redirect_to'])) 
+        {
+             $_SESSION['redirect_to'] = basename($_SERVER['PHP_SELF']) . '?' . http_build_query($_GET);
+        }
+        
         header("Location: Login.php");
         exit();
     }
-    
     
 ?>
 
@@ -51,38 +58,92 @@
         <tbody>
       
                 <?php 
+                   
+
                     foreach($getAlbums as $album)  
                     {
-                    echo "<tr>";
-                    echo "<td>". htmlspecialchars($album['Title']) . "</td>";
-                    echo "<td>". htmlspecialchars($album['NumberOfPictures']) . "</td>";
-                    echo "<td>". htmlspecialchars($album['Accessibility_Code']). "</td>";
-                    echo "<td> 
-                            <button type='button class='btn btn-outline-danger'>
-                                    Delete
-                            </button> 
-                        </td>";
-                        
-                    echo "</tr>";
+                        $AccessibilityDropdownList = "<select name ='Accessibility' class='form-select'>";
+                        $selected = "";
+
+                        foreach($getAccesibility as $row)
+                        {
+                            
+                            if($row['accessibility_Code'])
+                            {
+                                if($album['Accessibility_Code'] == $row['accessibility_Code'])
+                                {
+                                    $AccessibilityDropdownList .= "<option value='" . $row['accessibility_Code'] ."-" .  $album['Album_Id'] . "' selected>" . $row['Description']."</option>";
+                                } 
+                                else
+                                {
+                                    $AccessibilityDropdownList .= "<option value='".$row['accessibility_Code'] . "-" .  $album['Album_Id'] ."'>".$row['Description']."</option>";
+                                }
+                            }
+                        }  
+                        $AccessibilityDropdownList .=  "</select> "; 
+
+                            echo "<tr>";
+                            echo "<td><a href='MyPictures.php?Album_Id=" . $album['Album_Id'] . "'>". htmlspecialchars($album['Title']) . "</a></td>";
+                            echo "<td>". htmlspecialchars($album['NumberOfPictures']) . "</td>";
+                            echo "<td>"; echo $AccessibilityDropdownList; echo "</td>";
+                            echo "<td> <a href='delete_album.php?Album_Id=" . $album['Album_Id'] . "' 
+                                    onclick = 'return confrimDelete(\"" . addslashes($album['Title']) . "\", ". $album['NumberOfPictures'] .");' >Delete</a>
+                            
+                                </td>";
+                        echo "</tr>";
                     }
                         
                 ?>
-              
-                <td>
-                    <button type="button" class="btn btn-outline-danger">
-                        Delete
-                    </button>
-                </td>
-                
-                
         </tbody>
     </table>
     
     <!-- Save Changes Button -->
     <div class="mt-3 d-flex justify-content-end">
-        <button type="reset" class="btn" style="background-color: DarkSlateBlue; color: white;">Save Changes</button>
+       <!-- <button type="reset" class="btn" style="background-color: DarkSlateBlue; color: white;">Save Changes</button> -->
+        <a class="btn" id="saveLink" style="background-color: DarkSlateBlue; color: white;" 
+        href="saveAlbumChanges.php?rowsToSave="+ rowsToSave>Save Changes</a>
     </div>
 </div>
+<script>
+    let rowsToSave = [];
+
+    function confrimDelete(albumTitle, numOfPictures){
+        return confirm(`Are you sure you want to delete the album ${albumTitle} with ${numOfPictures} pictures?`
+        );
+    }
+
+    const selectElements = document.getElementsByName('Accessibility');
+
+    selectElements.forEach(function(element) {
+
+        // Add event listener to the select element
+        element.addEventListener('change', function() {
+            // Get the selected value;
+            const selectedValue = element.value;
+            
+            // Split the value to get the album id
+            const albumId = selectedValue.split("-")[1];
+            const accessibilityCode = selectedValue.split("-")[0];
+            let row = {Album_Id: albumId, Accessibility_Code: accessibilityCode};
+            // Check if the Album_Id already exists in rowsToSave
+            let existingRowIndex = rowsToSave.findIndex(item => item.Album_Id === albumId);
+
+            if (existingRowIndex !== -1) {
+                // If it exists, update the row (you can modify properties if needed)
+                rowsToSave[existingRowIndex] = row;
+            } else {
+                // If it doesn't exist, push the new row to the array
+                rowsToSave.push(row);
+            }
+
+            // Convert the rowsToSave array into a JSON string
+            const rowsToSaveString = encodeURIComponent(JSON.stringify(rowsToSave));
+            // Set the href of the anchor tag with the serialized data as a query parameter
+            const saveLink = document.getElementById('saveLink');
+            saveLink.href = "saveAlbumChanges.php?rowsToSave=" + rowsToSaveString;
+        });
+    });
+</script>
 
 
 <?php include('./common/footer.php'); ?>
