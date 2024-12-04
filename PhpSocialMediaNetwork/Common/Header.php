@@ -28,7 +28,14 @@
             <li class="nav-item"><a class="nav-link" href="MyAlbums.php">My Albums</a></li>
             <li class="nav-item"><a class="nav-link" href="MyPictures.php">My Pictures</a></li>
             <li class="nav-item"><a class="nav-link" href="UploadPictures.php">Upload Pictures</a></li>
-            <li class="nav-item"><a class="nav-link" href="Login.php">Log in</a></li>
+            <li class="nav-item"><? 
+                if (isset($_SESSION['user'])) {
+                  echo "<a href='Logout.php' class='nav-link'>Log out</a>";
+                } else {
+                    echo "<a href='Login.php' class='nav-link'>Log in</a>";
+                  }
+                ?>
+            </li>
           </ul>
         </div>
     </nav>
