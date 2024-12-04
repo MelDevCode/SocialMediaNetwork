@@ -6,23 +6,35 @@
   // Start session
   session_start();
   
-   if (isset($_SESSION['user'])) {
-    $user = $_SESSION['user'];
-    $userName = $user['Name'];  // Get the student's name
-    $userId = $user['UserId'];
-    } else {
-        header("Location: Login.php");
-        exit();
-    }
+    // Check if the user is logged in
+  if (isset($_SESSION['user']))
+  {
+   $user = $_SESSION['user'];
+   $userName = $user['Name'];  // Get the student's name
+   $userId = $user['UserId'];
+   }
+    elseif (!isset($_SESSION['user']))   
+   {
+       // Save the requested page in the session
+       if (!isset($_SESSION['redirect_to'])) 
+       {
+            $_SESSION['redirect_to'] = basename($_SERVER['PHP_SELF']) . '?' . http_build_query($_GET);
+       }
+       
+       header("Location: Login.php");
+       exit();
+   }
 
   $getAccesibility = getAccessibility();
   $title = $Description =  $valNewAlbum =  $selectAccessibility = $Error = "";
   
-   if(filter_input(INPUT_SERVER,'REQUEST_METHOD') == 'POST')
+   if ($_SERVER['REQUEST_METHOD'] === 'POST')
    {
+     
        $title = trim(filter_input(INPUT_POST,'titleName'));
        $Description = trim(filter_input(INPUT_POST,'albumDescription'));
        $selectAccessibility = trim(filter_input(INPUT_POST,'Accessibility'));
+      
        
        
        if (!empty($title))
@@ -31,7 +43,7 @@
           {
               $valNewAlbum = AddNewAlbum($title, $Description, $userId, $selectAccessibility);
               $Error = "OK";
-              echo $valNewAlbum;
+            
           } 
           catch (Exception $ex) 
           {
@@ -42,6 +54,7 @@
        else
        {
          $tittle = "Enter Albun Name." ; 
+         echo $tittle;
        }
        
    }
@@ -54,7 +67,7 @@
     <h2 class="mt-3">Create New Album</h2>
     <h6>Welcome Back <span style="color:blue;"> <?php echo $userName ?> </span> (You can change user <a href="Login.php">here</a> if this is not you.)</h6>
     
-    <form method="post" id="addAlbum">
+    <form method="POST" id="addAlbum">
         <table class="table align-middle">
             <tbody>
                 <tr>
