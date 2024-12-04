@@ -14,15 +14,20 @@
     define("UPLOAD_DIR", "uploads/");  // Directory to save images
 
     // Check if the user is logged in
-    if (isset($_SESSION['user'])) {
-        $user = $_SESSION['user'];
-        $userName = $user['Name'];  // Get the user's name
-        $userId = $user['UserId'];  // Get the user's UserId
-    } else {
+    if (!isset($_SESSION['user'])) {
+        // Set the target page only if not logged in
+        if (!isset($_SESSION['redirect_to'])) {
+            $_SESSION['redirect_to'] = basename($_SERVER['PHP_SELF']);
+        }
         // Redirect to login
         header("Location: Login.php");
         exit();
     }
+
+    // User is logged in
+    $user = $_SESSION['user'];
+    $userName = $user['Name'];  // Get the user's name
+    $userId = $user['UserId'];  // Get the user's UserId
 
     // Fetch all the albums for the user
     $allAlbums = getAlbums($userId);
@@ -39,12 +44,6 @@
         // Validate form data
         if (empty($albumId)) {
             $errors['album'] = 'Album is required';
-        }
-        if (empty($title)) {
-            $errors['title'] = 'Title is required';
-        }
-        if (empty($description)) {
-            $errors['description'] = 'Description is required';
         }
 
         // Check if files are uploaded
