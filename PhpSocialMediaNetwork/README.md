@@ -1,4 +1,4 @@
-## PHP Social Media Network
+## PHP Social Media Network :+1:
 
 Basic Social Network website made with PHP
 
