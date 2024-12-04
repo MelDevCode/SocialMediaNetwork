@@ -12,11 +12,26 @@
         }
       }
 
-      function confirmDeny(e) {
-        if(!confirm("The selected requests will be denied")) {
-            e.preventDefault();
+      // function confirmDeny(e) {
+      //   if(!confirm("The selected requests will be denied")) {
+      //       e.preventDefault();
+      //   }
+      // }
+      function confirmDeny(event) {
+        const confirmed = confirm("Are you sure you want to deny the selected friend requests?");
+        if (!confirmed) {
+            event.preventDefault(); // Stop form submission if not confirmed
+            return false;
         }
-      }
+        return true; // Allow form submission if confirmed
+    }
+
+    // Bypass onsubmit for "Accept Selected"
+    function submitWithoutConfirm(button) {
+        const form = button.closest('form'); // Get the closest form
+        const submitButton = document.getElementById('acceptRequest'); // Create a hidden submit button
+        form.submit();
+    }
     </script>
 </body>
 </html> 
