@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['commentText'], $_POST
     <select class="form-select mb-3" id="albumSelect" name="albumSelect" onchange="fetchPhotosByAlbum(this.value)">
         <option value="">Select an Album</option>
         <?php foreach ($allAlbums as $index => $album): ?>
-        <option name="albumId" value="<?php echo $album['Album_Id']; ?>" <?php echo $index === 0 ? 'selected' : ''; ?>>
+        <option name="albumId" value="<?php echo $album['Album_Id']; ?>" <?php echo $index === $albumId ? 'selected' : ''; ?>>
             <?php echo htmlspecialchars($album['Title']); ?>
         </option>
         <?php endforeach; ?>

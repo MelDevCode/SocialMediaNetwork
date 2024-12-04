@@ -94,7 +94,9 @@
                         <?php
                             $friends = getFriends($userId);
                             if(count($friends) > 0) {
+                                
                                 foreach($friends as $friend) {
+                                    $sharedAlbums = count(getSharedAlbums($friend));
                                     echo "<tr>
                                             <td class='text-start'>
                                                 <div class='d-flex align-items-center'>
@@ -102,7 +104,7 @@
                                                 </div>
                                             </td>
                                             <td class='text-start'>
-                                                <p class='fw-normal mb-1'>0</p>
+                                                <p class='fw-normal mb-1'>$sharedAlbums</p>
                                             </td>
                                             <td class='text-start'>
                                                 <input type='checkbox' value='$friend' name='friends[]'>

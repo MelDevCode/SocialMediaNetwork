@@ -314,6 +314,27 @@ function denyFriendRequest($userId, $requesterId) {
         return $albums; // Returns an array of albums, now including Album_Id
     }
 
+    function getSharedAlbums($ownerId) {
+        $pdo = getPDO(); // Ensure getPDO() returns a valid PDO instance
+
+        // Update the SQL query to include Album_Id
+        $sql = "SELECT Album_Id, Title, Description 
+                FROM album 
+                WHERE Owner_Id = :ownerId
+                AND Accessibility_Code = 'shared'";
+        
+        // Use prepared statements to avoid SQL injection
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':ownerId', $ownerId);
+        
+        $stmt->execute();
+        
+        // Fetch all rows at once
+        $albums = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        return $albums; // Returns an array of albums, now including Album_Id
+    }
+
     function savePicture($albumId, $fileName, $title, $description, $tempFilePath) {
         $pdo = getPDO();
 
@@ -424,4 +445,71 @@ function friendName($friendUserId) {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return $row ? $row['Name'] : null; // Return the name or null if not found
 }
+
+function updateAlbum($rowsToSave)
+{
+    try
+    {
+        
+        foreach ($rowsToSave as $row) {
+            $pdo = getPDO();
+            // Access the values for 'Album_Id' and 'Accessibility_Code'
+            $albumId = $row['Album_Id'];
+            $accessibilityCode = $row['Accessibility_Code'];
+        
+            // Update the album
+            $query= "Update album set Accessibility_Code = :accessibilityCode WHERE Album_Id = :albumId";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute(['accessibilityCode'=>$accessibilityCode ,'albumId'=>$albumId]); 
+        }
+        return true;
+    }
+    catch (PDOException $e)
+    {
+        return "Error updating album" .$e;
+        //throw new Exception("Error deleting album: " . $e); 
+    
+    }
+}
+
+function deletePicture($albumId) 
+{
+    try
+    {
+        $pdo = getPDO();
+
+        // Delete pictures first associated with the album
+        $query = "DELETE FROM picture WHERE Album_Id = :albumId";  
+        $stmt = $pdo->prepare($query);
+        $stmt->execute(['albumId'=>$albumId]); 
+    
+    }
+    catch (PDOException $e)
+    {
+        return "Error deleting album" .$e;
+        //throw new Exception("Error deleting album: " . $e); 
+    
+    }
+}
+
+function deleteAlbum($albumId): bool|string 
+    {
+        try
+        {
+            $pdo = getPDO();
+        
+            // Delete the album
+            $query= "DELETE FROM album WHERE Album_Id = :albumId";  
+            $stmt = $pdo->prepare($query);
+            $stmt->execute(['albumId'=>$albumId]); 
+        
+            return true;
+        }
+        catch (PDOException $e)
+        {
+            return "Error deleting album" .$e;
+            //throw new Exception("Error deleting album: " . $e); 
+        
+        }
+    }
 ?>
