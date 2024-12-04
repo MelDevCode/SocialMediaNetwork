@@ -78,7 +78,7 @@
                                     echo "<tr>
                                             <td class='text-start'>
                                                 <div class='d-flex align-items-center'>
-                                                    <button type='button' class='btn btn-link'>$friend</button>
+                                                    <a href='FriendPictures.php?user=$friend' class='btn btn-link'>$friend</a>
                                                 </div>
                                             </td>
                                             <td class='text-start'>
